@@ -3,19 +3,7 @@
 resource "aws_vpc" "vpc" {
   cidr_block = var.vpc_cidr_block
   tags = {
-    Name = var.vpc_name
-    Env  = var.env
-  }
-}
-
-# Create a subnet
-resource "aws_subnet" "subnet" {
-  vpc_id                  = aws_vpc.vpc.id
-  cidr_block              = var.subnet_cidr
-  map_public_ip_on_launch = var.subnet_map_public_ip_on_launch
-  tags = {
-    Name = var.subnet_name
-    Env  = var.env
+    Name = "vpc-${var.region_short[var.region]}-${var.env}-${var.project}"
   }
 }
 
@@ -23,8 +11,7 @@ resource "aws_subnet" "subnet" {
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.vpc.id
   tags = {
-    Name = var.gw_name
-    Env  = var.env
+    Name = "gw-${var.region_short[var.region]}-${var.env}-${var.project}"
   }
 }
 
@@ -36,7 +23,67 @@ resource "aws_default_route_table" "route_table" {
     gateway_id = aws_internet_gateway.gw.id
   }
   tags = {
-    Name = var.default_route_table_name
-    env  = var.env
+    Name = "rt-${var.region_short[var.region]}-${var.env}-${var.project}"
   }
+}
+
+# Create a public subnet
+resource "aws_subnet" "public_subnet" {
+  vpc_id                  = aws_vpc.vpc.id
+  cidr_block              = var.public_subnet_cidr_block
+  map_public_ip_on_launch = var.public_subnet_map_public_ip
+  availability_zone       = join("", [var.region, var.availability_zone])
+
+  tags = {
+    Name = "public-subnet-${var.region_short[var.region]}-${var.env}-${var.project}"
+  }
+}
+
+# Create a private subnet
+resource "aws_subnet" "private_subnet" {
+  vpc_id                  = aws_vpc.vpc.id
+  cidr_block              = var.private_subnet_cidr_block
+  map_public_ip_on_launch = var.private_subnet_map_public_ip
+  availability_zone       = join("", [var.region, var.availability_zone])
+
+  tags = {
+    Name = "private-subnet-${var.region_short[var.region]}-${var.env}-${var.project}"
+  }
+}
+
+# Create an Elastic IP
+resource "aws_eip" "eip_nat" {
+  vpc = true
+  tags = {
+    Name = "eip-${var.region_short[var.region]}-${var.env}-${var.project}"
+  }
+}
+
+# Create a NAT gateway
+resource "aws_nat_gateway" "nat_gw" {
+  allocation_id = aws_eip.eip_nat.id
+  subnet_id     = aws_subnet.public_subnet.id
+
+  tags = {
+    Name = "nat-gw-${var.region_short[var.region]}-${var.env}-${var.project}"
+  }
+}
+
+#
+# Allow Internet access to instances in the private subnet
+#
+
+# Create a route table
+resource "aws_route_table" "nat_route_table" {
+  vpc_id = aws_vpc.vpc.id
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat_gw.id
+  }
+}
+
+# Create a route table association between private subnet and nat gateway
+resource "aws_route_table_association" "private_subnet_to_nat_gw" {
+  route_table_id = aws_route_table.nat_route_table.id
+  subnet_id      = aws_subnet.private_subnet.id
 }

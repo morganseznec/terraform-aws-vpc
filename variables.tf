@@ -1,14 +1,33 @@
-variable "subnet_name" {
+variable "project" {
+  type    = string
+}
+
+variable "region" {
   type = string
 }
 
-variable "subnet_cidr_block" {
+variable "availability_zone" {
+  type = string
+}
+
+variable "public_subnet_cidr_block" {
   type    = string
   default = "10.44.1.0/24"
 }
 
-variable "vpc_name" {
-  type = string
+variable "public_subnet_map_public_ip" {
+  type    = bool
+  default = false
+}
+
+variable "private_subnet_cidr_block" {
+  type    = string
+  default = "10.44.1.0/24"
+}
+
+variable "private_subnet_map_public_ip" {
+  type    = bool
+  default = false
 }
 
 variable "vpc_cidr_block" {
@@ -21,12 +40,24 @@ variable "env" {
   default = ""
 }
 
-variable "gw_name" {
-  type = string
-  default = "gw-default"
-}
-
-variable "default_route_table_name" {
-  type = string
-  default = "default-route-table"
+variable "region_short" {
+  type = map(string)
+  default = {
+    eu-central-1   = "ec1"
+    eu-north-1     = "en1"
+    eu-west-1      = "ew1"
+    eu-west-2      = "ew2"
+    eu-west-3      = "ew3"
+    us-east-1      = "ue1"
+    us-east-2      = "ue2"
+    us-west-1      = "uw1"
+    us-west-2      = "uw2"
+    sa-east-1      = "se1"
+    ap-northeast-1 = "an1"
+    ap-northeast-2 = "an2"
+    ap-south-1     = "as1"
+    ap-southeast-1 = "ase1"
+    ap-southeast-2 = "ase2"
+    ca-central-1   = "cc1"
+  }
 }
