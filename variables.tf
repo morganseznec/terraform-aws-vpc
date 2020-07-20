@@ -10,7 +10,7 @@ variable "availability_zone" {
   type = string
 }
 
-variable "public_subnet_cidr_block" {
+variable "public_subnet_cidr" {
   type    = string
   default = "10.44.1.0/24"
 }
@@ -20,12 +20,22 @@ variable "public_subnet_map_public_ip" {
   default = false
 }
 
-variable "private_subnet_cidr_block" {
+variable "app_private_subnet_cidr" {
   type    = string
-  default = "10.44.1.0/24"
+  default = "10.44.2.0/24"
 }
 
-variable "private_subnet_map_public_ip" {
+variable "app_private_subnet_map_public_ip" {
+  type    = bool
+  default = false
+}
+
+variable "db_private_subnet_cidr" {
+  type    = string
+  default = "10.44.3.0/24"
+}
+
+variable "db_private_subnet_map_public_ip" {
   type    = bool
   default = false
 }

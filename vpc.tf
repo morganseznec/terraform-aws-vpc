@@ -30,7 +30,7 @@ resource "aws_default_route_table" "route_table" {
 # Create a public subnet
 resource "aws_subnet" "public_subnet" {
   vpc_id                  = aws_vpc.vpc.id
-  cidr_block              = var.public_subnet_cidr_block
+  cidr_block              = var.public_subnet_cidr
   map_public_ip_on_launch = var.public_subnet_map_public_ip
   availability_zone       = join("", [var.region, var.availability_zone])
 
@@ -40,14 +40,26 @@ resource "aws_subnet" "public_subnet" {
 }
 
 # Create a private subnet
-resource "aws_subnet" "private_subnet" {
+resource "aws_subnet" "app_private_subnet" {
   vpc_id                  = aws_vpc.vpc.id
-  cidr_block              = var.private_subnet_cidr_block
-  map_public_ip_on_launch = var.private_subnet_map_public_ip
+  cidr_block              = var.app_private_subnet_cidr
+  map_public_ip_on_launch = var.app_private_subnet_map_public_ip
   availability_zone       = join("", [var.region, var.availability_zone])
 
   tags = {
-    Name = "private-subnet-${var.region_short[var.region]}-${var.env}-${var.project}"
+    Name = "private-subnet-${var.region_short[var.region]}-${var.env}-${var.project}-app"
+  }
+}
+
+# Create a private subnet
+resource "aws_subnet" "db_private_subnet" {
+  vpc_id                  = aws_vpc.vpc.id
+  cidr_block              = var.db_private_subnet_cidr
+  map_public_ip_on_launch = var.db_private_subnet_map_public_ip
+  availability_zone       = join("", [var.region, var.availability_zone])
+
+  tags = {
+    Name = "private-subnet-${var.region_short[var.region]}-${var.env}-${var.project}-db"
   }
 }
 
@@ -83,7 +95,13 @@ resource "aws_route_table" "nat_route_table" {
 }
 
 # Create a route table association between private subnet and nat gateway
-resource "aws_route_table_association" "private_subnet_to_nat_gw" {
+resource "aws_route_table_association" "app_subnet_to_nat_gw" {
   route_table_id = aws_route_table.nat_route_table.id
-  subnet_id      = aws_subnet.private_subnet.id
+  subnet_id      = aws_subnet.app_private_subnet.id
+}
+
+# Create a route table association between private subnet and nat gateway
+resource "aws_route_table_association" "db_subnet_to_nat_gw" {
+  route_table_id = aws_route_table.nat_route_table.id
+  subnet_id      = aws_subnet.db_private_subnet.id
 }
