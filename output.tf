@@ -19,8 +19,8 @@ output "db_private_subnet_id" {
 }
 
 output "bastion_public_subnet_id" {
-  value = aws_subnet.bastion_public_subnet.id
+  value = aws_subnet.bastion_public_subnet.0.id
   description = "The Bastion public subnet ID"
 
-  depends_on = [ aws_subnet.bastion_public_subnet ]
+  depends_on = [ aws_subnet.bastion_public_subnet.0 ]
 }
