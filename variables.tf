@@ -45,6 +45,21 @@ variable "vpc_cidr_block" {
   default = "10.44.0.0/16"
 }
 
+variable "bastion" {
+  type    = bool
+  default = true
+}
+
+variable "bastion_public_subnet_cidr" {
+  type    = string
+  default = "10.44.254.0/24"
+}
+
+variable "bastion_subnet_map_public_ip" {
+  type    = bool
+  default = true
+}
+
 variable "env" {
   type    = string
   default = ""

@@ -105,3 +105,16 @@ resource "aws_route_table_association" "db_subnet_to_nat_gw" {
   route_table_id = aws_route_table.nat_route_table.id
   subnet_id      = aws_subnet.db_private_subnet.id
 }
+
+# Create a bastion subnet
+resource "aws_subnet" "bastion_public_subnet" {
+  count                   = var.bastion ? 1 : 0
+  vpc_id                  = aws_vpc.vpc.id
+  cidr_block              = var.bastion_public_subnet_cidr
+  map_public_ip_on_launch = var.bastion_subnet_map_public_ip
+  availability_zone       = join("", [var.region, var.availability_zone])
+
+  tags = {
+    Name = "bastion-subnet-${var.region_short[var.region]}-${var.env}-${var.project}"
+  }
+}
