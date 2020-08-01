@@ -16,7 +16,6 @@ module "example_vpc" {
   source                         = "github.com/morganseznec/terraform-aws-vpc"
   project                        = "myproject"
   vpc_cidr_block                 = "10.44.0.0/16"
-  region                         = "us-east-1"
   availability_zone              = "a"
   public_subnet_cidr_block       = "10.44.1.0/24"
   public_subnet_map_public_ip    = false
@@ -39,7 +38,6 @@ module "example_vpc" {
 |------|-------------|------|---------|:--------:|
 | project | Project name | `string` | `""` | yes |
 | vpc_cidr_block | The CIDR used for the VPC | `string` | `10.44.0.0/16` | no |
-| region | AWS region | `string` | `""` | yes |
 | availability_zone | Availability zone (a, b, c, d) | `string` | `""` | yes |
 | public_subnet_cidr_block | The subnet cidr block | `string` | `10.44.1.0/24` | no |
 | public_subnet_map_public_ip | Map public IP on launch | `bool` | `false` | no |

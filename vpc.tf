@@ -1,9 +1,11 @@
+# Get current Region
+data "aws_region" "region" {} 
 
 # Create a VPC
 resource "aws_vpc" "vpc" {
   cidr_block = var.vpc_cidr_block
   tags = {
-    Name = "vpc-${var.region_short[var.region]}-${var.env}-${var.project}"
+    Name = "vpc-${var.region_short[data.aws_region.region.name]}-${var.env}-${var.project}"
   }
 }
 
@@ -11,7 +13,7 @@ resource "aws_vpc" "vpc" {
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.vpc.id
   tags = {
-    Name = "gw-${var.region_short[var.region]}-${var.env}-${var.project}"
+    Name = "gw-${var.region_short[data.aws_region.region.name]}-${var.env}-${var.project}"
   }
 }
 
@@ -23,7 +25,7 @@ resource "aws_default_route_table" "route_table" {
     gateway_id = aws_internet_gateway.gw.id
   }
   tags = {
-    Name = "rt-${var.region_short[var.region]}-${var.env}-${var.project}"
+    Name = "rt-${var.region_short[data.aws_region.region.name]}-${var.env}-${var.project}"
   }
 }
 
@@ -32,10 +34,10 @@ resource "aws_subnet" "public_subnet" {
   vpc_id                  = aws_vpc.vpc.id
   cidr_block              = var.public_subnet_cidr
   map_public_ip_on_launch = var.public_subnet_map_public_ip
-  availability_zone       = join("", [var.region, var.availability_zone])
+  availability_zone       = join("", [data.aws_region.region.name, var.availability_zone])
 
   tags = {
-    Name = "public-subnet-${var.region_short[var.region]}-${var.env}-${var.project}"
+    Name = "public-subnet-${var.region_short[data.aws_region.region.name]}-${var.env}-${var.project}"
   }
 }
 
@@ -44,10 +46,10 @@ resource "aws_subnet" "app_private_subnet" {
   vpc_id                  = aws_vpc.vpc.id
   cidr_block              = var.app_private_subnet_cidr
   map_public_ip_on_launch = var.app_private_subnet_map_public_ip
-  availability_zone       = join("", [var.region, var.availability_zone])
+  availability_zone       = join("", [data.aws_region.region.name, var.availability_zone])
 
   tags = {
-    Name = "private-subnet-${var.region_short[var.region]}-${var.env}-${var.project}-app"
+    Name = "private-subnet-${var.region_short[data.aws_region.region.name]}-${var.env}-${var.project}-app"
   }
 }
 
@@ -56,10 +58,10 @@ resource "aws_subnet" "db_private_subnet" {
   vpc_id                  = aws_vpc.vpc.id
   cidr_block              = var.db_private_subnet_cidr
   map_public_ip_on_launch = var.db_private_subnet_map_public_ip
-  availability_zone       = join("", [var.region, var.availability_zone])
+  availability_zone       = join("", [data.aws_region.region.name, var.availability_zone])
 
   tags = {
-    Name = "private-subnet-${var.region_short[var.region]}-${var.env}-${var.project}-db"
+    Name = "private-subnet-${var.region_short[data.aws_region.region.name]}-${var.env}-${var.project}-db"
   }
 }
 
@@ -67,7 +69,7 @@ resource "aws_subnet" "db_private_subnet" {
 resource "aws_eip" "eip_nat" {
   vpc = true
   tags = {
-    Name = "eip-${var.region_short[var.region]}-${var.env}-${var.project}"
+    Name = "eip-${var.region_short[data.aws_region.region.name]}-${var.env}-${var.project}"
   }
 }
 
@@ -77,7 +79,7 @@ resource "aws_nat_gateway" "nat_gw" {
   subnet_id     = aws_subnet.public_subnet.id
 
   tags = {
-    Name = "nat-gw-${var.region_short[var.region]}-${var.env}-${var.project}"
+    Name = "nat-gw-${var.region_short[data.aws_region.region.name]}-${var.env}-${var.project}"
   }
 }
 
