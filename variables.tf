@@ -67,3 +67,22 @@ variable "region_short" {
     ca-central-1   = "cc1"
   }
 }
+
+variable "routes" {
+  default = []
+}
+
+variable "peering_routes" {
+  default = []
+}
+variable "propagating_vgws" {
+  default = []
+}
+variable "vpn_gateway_amazon_side_asn" {
+  default = 64512
+}
+
+variable "country" {
+  type    = string
+  default = "ci"
+}

@@ -6,6 +6,8 @@ resource "aws_vpc" "vpc" {
   cidr_block = var.vpc_cidr_block
   tags = {
     Name = "vpc-${var.region_short[data.aws_region.region.name]}-${var.env}-${var.project}"
+    Project = var.project
+    Country = var.country
   }
 }
 
@@ -14,7 +16,24 @@ resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.vpc.id
   tags = {
     Name = "gw-${var.region_short[data.aws_region.region.name]}-${var.env}-${var.project}"
+    Project = var.project
+    Country = var.country
   }
+}
+
+resource "aws_vpn_gateway" "private_gateway" {
+  vpc_id          = aws_vpc.vpc.id
+  amazon_side_asn = var.vpn_gateway_amazon_side_asn
+  tags = {
+    Name = "vgw-${var.region_short[data.aws_region.region.name]}-${var.env}-${var.project}"
+    Project = var.project
+    Country = var.country
+  }
+}
+
+resource "aws_vpn_gateway_route_propagation" "route_propagation" {
+  vpn_gateway_id = aws_vpn_gateway.private_gateway.id
+  route_table_id = aws_route_table.nat_route_table.id
 }
 
 # Create a default route table
@@ -24,8 +43,21 @@ resource "aws_default_route_table" "route_table" {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.gw.id
   }
+
+  propagating_vgws = [aws_vpn_gateway.private_gateway.id]
+
+  dynamic "route" {
+      for_each = var.peering_routes
+      content {
+        cidr_block     = route.value.cidr_block
+        vpc_peering_connection_id = route.value.vpc_peering_connection_id
+      }
+  }
+
   tags = {
     Name = "rt-${var.region_short[data.aws_region.region.name]}-${var.env}-${var.project}"
+    Project = var.project
+    Country = var.country
   }
 }
 
@@ -38,6 +70,8 @@ resource "aws_subnet" "public_subnet" {
 
   tags = {
     Name = "public-subnet-${var.region_short[data.aws_region.region.name]}-${var.env}-${var.project}"
+    Project = var.project
+    Country = var.country
   }
 }
 
@@ -50,6 +84,8 @@ resource "aws_subnet" "app_private_subnet" {
 
   tags = {
     Name = "private-subnet-${var.region_short[data.aws_region.region.name]}-${var.env}-${var.project}-app"
+    Project = var.project
+    Country = var.country
   }
 }
 
@@ -62,6 +98,8 @@ resource "aws_subnet" "db_private_subnet" {
 
   tags = {
     Name = "private-subnet-${var.region_short[data.aws_region.region.name]}-${var.env}-${var.project}-db"
+    Project = var.project
+    Country = var.country
   }
 }
 
@@ -70,6 +108,8 @@ resource "aws_eip" "eip_nat" {
   vpc = true
   tags = {
     Name = "eip-${var.region_short[data.aws_region.region.name]}-${var.env}-${var.project}"
+    Project = var.project
+    Country = var.country
   }
 }
 
@@ -80,6 +120,8 @@ resource "aws_nat_gateway" "nat_gw" {
 
   tags = {
     Name = "nat-gw-${var.region_short[data.aws_region.region.name]}-${var.env}-${var.project}"
+    Project = var.project
+    Country = var.country
   }
 }
 
@@ -89,10 +131,28 @@ resource "aws_nat_gateway" "nat_gw" {
 
 # Create a route table
 resource "aws_route_table" "nat_route_table" {
+
   vpc_id = aws_vpc.vpc.id
   route {
     cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.nat_gw.id
+  }
+
+  dynamic "route" {
+      for_each = var.routes
+      content {
+        cidr_block     = route.value.cidr_block
+        instance_id = try(route.value.instance_id, null)
+        network_interface_id = try(route.value.network_interface_id, null)
+      }
+  }
+
+    dynamic "route" {
+      for_each = var.peering_routes
+      content {
+        cidr_block     = route.value.cidr_block
+        vpc_peering_connection_id = route.value.vpc_peering_connection_id
+      }
   }
 }
 
